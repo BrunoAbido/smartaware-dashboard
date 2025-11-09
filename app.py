@@ -49,6 +49,12 @@ def scroll_bottom():
 st.sidebar.header("🎛️ Filtros")
 cameras = get_available_cameras()
 
+# 🔹 Garante que os dados da estrutura de câmeras estejam disponíveis
+from components.drive_downloader import ensure_data_for_selection
+
+ensure_data_for_selection()
+
+
 # 🔹 Garante que 'camera11' (Entrada) venha primeiro e 'camera10' por último
 if "camera11" in cameras:
     cameras.remove("camera11")
