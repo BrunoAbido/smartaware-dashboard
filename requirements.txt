@@ -1,0 +1,7 @@
+streamlit
+pandas
+plotly
+reportlab
+opencv-python
+ultralytics
+imageio
