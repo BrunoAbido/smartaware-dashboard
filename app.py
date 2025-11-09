@@ -12,6 +12,7 @@ from components.graficos import show_total_entries_last_15_days_chart
 from components.export_pdf import generate_daily_report
 from streamlit_scroll_to_top import scroll_to_here  # scroll automático
 from components.drive_downloader import ensure_data_for_selection
+from components.drive_downloader import ensure_camera_data
 
 if os.path.exists(r"G:\Meu Drive\Colab Notebooks\data\detections"):
     BASE_DIR = r"G:\Meu Drive\Colab Notebooks\data\detections"  # Caminho local
@@ -154,10 +155,11 @@ with left_col:
         date_str = selected_date.strftime("%Y-%m-%d")
         if is_full_day:
             st.subheader(f"{format_camera_name(selected_camera)} - {date_str} - Dia inteiro")
-
+            ensure_camera_data(selected_camera, date_str)
             display_heatmap(selected_camera, date_str, "total")
         else:
             st.subheader(f"{format_camera_name(selected_camera)} - {date_str} - Horário {selected_interval_label}")
+            ensure_camera_data(selected_camera, date_str)
             display_heatmap(selected_camera, date_str, selected_interval)
 
         # --- Botão "Ver mais" abaixo do Heatmap ---
