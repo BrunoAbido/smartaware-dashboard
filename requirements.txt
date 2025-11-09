@@ -6,3 +6,4 @@ opencv-python
 ultralytics
 imageio
 gdown
+streamlit-scroll-to-top
