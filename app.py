@@ -11,7 +11,6 @@ from components.utils import format_camera_name
 from components.graficos import show_total_entries_last_15_days_chart
 from components.export_pdf import generate_daily_report
 from streamlit_scroll_to_top import scroll_to_here  # scroll automático
-from components.drive_downloader import ensure_data_for_selection
 from components.drive_downloader import ensure_camera_data
 
 if os.path.exists(r"G:\Meu Drive\Colab Notebooks\data\detections"):
@@ -49,12 +48,6 @@ def scroll_bottom():
 # --- FILTROS ---
 st.sidebar.header("🎛️ Filtros")
 cameras = get_available_cameras()
-
-# 🔹 Garante que os dados da estrutura de câmeras estejam disponíveis
-from components.drive_downloader import ensure_data_for_selection
-
-ensure_data_for_selection()
-
 
 # 🔹 Garante que 'camera11' (Entrada) venha primeiro e 'camera10' por último
 if "camera11" in cameras:
@@ -96,7 +89,7 @@ else:
 # --- Garante que os arquivos necessários existam localmente (baixa apenas o essencial) ---
 if selected_camera and selected_date:
     date_str = selected_date.strftime("%Y-%m-%d")
-    ensure_data_for_selection(selected_camera, date_str)
+    ensure_camera_data(selected_camera, date_str)
 
 # --- Intervalos (períodos de tempo) ---
 intervals = get_intervals(selected_camera, selected_date.strftime("%Y-%m-%d")) if selected_camera and selected_date else []
