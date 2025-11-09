@@ -11,17 +11,12 @@ from components.utils import format_camera_name
 from components.graficos import show_total_entries_last_15_days_chart
 from components.export_pdf import generate_daily_report
 from streamlit_scroll_to_top import scroll_to_here  # scroll automático
+from components.drive_downloader import ensure_data_for_selection
 
-from components.drive_loader import download_drive_folder
-
-BASE_DIR = "data/detections"
-
-# Baixar dados do Drive (somente se a pasta local não existir)
-if not os.path.exists(BASE_DIR):
-    download_drive_folder("https://drive.google.com/drive/folders/1tOUMDs-SdgF1X9q-d2okdmHtn1iYLRBo?usp=sharing", BASE_DIR)
-
-
-BASE_DIR = r"G:\Meu Drive\Colab Notebooks\data\detections"
+if os.path.exists(r"G:\Meu Drive\Colab Notebooks\data\detections"):
+    BASE_DIR = r"G:\Meu Drive\Colab Notebooks\data\detections"  # Caminho local
+else:
+    BASE_DIR = "data/detections"  # Caminho para o ambiente do Streamlit Cloud
 
 # --- Configuração da página ---
 st.set_page_config(page_title="Mapa de Calor - Circulação", layout="wide")
@@ -90,6 +85,11 @@ if dates_available:
         selected_date = None
 else:
     selected_date = None
+
+# --- Garante que os arquivos necessários existam localmente (baixa apenas o essencial) ---
+if selected_camera and selected_date:
+    date_str = selected_date.strftime("%Y-%m-%d")
+    ensure_data_for_selection(selected_camera, date_str)
 
 # --- Intervalos (períodos de tempo) ---
 intervals = get_intervals(selected_camera, selected_date.strftime("%Y-%m-%d")) if selected_camera and selected_date else []
