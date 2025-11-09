@@ -12,6 +12,15 @@ from components.graficos import show_total_entries_last_15_days_chart
 from components.export_pdf import generate_daily_report
 from streamlit_scroll_to_top import scroll_to_here  # scroll automático
 
+from components.drive_loader import download_drive_folder
+
+BASE_DIR = "data/detections"
+
+# Baixar dados do Drive (somente se a pasta local não existir)
+if not os.path.exists(BASE_DIR):
+    download_drive_folder("https://drive.google.com/drive/folders/1tOUMDs-SdgF1X9q-d2okdmHtn1iYLRBo?usp=sharing", BASE_DIR)
+
+
 BASE_DIR = r"G:\Meu Drive\Colab Notebooks\data\detections"
 
 # --- Configuração da página ---
