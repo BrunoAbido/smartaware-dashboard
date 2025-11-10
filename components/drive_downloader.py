@@ -1,26 +1,17 @@
 import os
 import gdown
+import streamlit as st
 
 BASE_DIR = "data/detections"
 
-# 🔹 IDs públicos do Google Drive de cada câmera (substitua pelos seus)
-DRIVE_CAMERA_IDS = {
-    "camera11": "1xXWb5wY2C6AdPbA7UwLPCg4pDo27RQpK",  # Entrada
-    "camera1": "1IvwZP7CUkq1p2QeUThjQk7gV4WqDWapJ",
-    "camera2": "1mjPOJPN5QtA13aThL2IrZzDkZebkVRQm",
-    "camera10": "1x7b5y-MlfB-F1VVVYH8hM6P1MB9TxExU",
-}
-
+# 🔹 Pasta raiz pública do Google Drive (detections/)
+DRIVE_BASE_URL = "https://drive.google.com/drive/folders/1tOUMDs-SdgF1X9q-d2okdmHtn1iYLRBo?usp=sharing"
 
 def ensure_camera_data(camera_name: str, date_str: str):
     """
     Baixa apenas os arquivos necessários da câmera e data selecionadas.
     Ignora arquivos grandes (npy, vídeos, etc.).
     """
-    if camera_name not in DRIVE_CAMERA_IDS:
-        print(f"⚠️ Câmera {camera_name} não possui ID configurado.")
-        return
-
     target_dir = os.path.join(BASE_DIR, camera_name, date_str)
     os.makedirs(target_dir, exist_ok=True)
 
@@ -29,33 +20,30 @@ def ensure_camera_data(camera_name: str, date_str: str):
         print(f"✅ Dados já disponíveis para {camera_name}/{date_str}")
         return
 
-    print(f"📥 Baixando dados de {camera_name}/{date_str}...")
+    st.sidebar.info(f"⏳ Baixando dados de {camera_name} ({date_str}) do Google Drive...")
 
-    # 🔹 Caminho base da pasta da câmera no Google Drive
-    camera_folder_id = DRIVE_CAMERA_IDS[camera_name]
-    camera_folder_url = f"https://drive.google.com/drive/folders/{camera_folder_id}"
+    try:
+        # 🔹 Tenta baixar a subpasta correspondente
+        folder_url = f"{DRIVE_BASE_URL}/{camera_name}/{date_str}"
+        files = gdown.download_folder(
+            url=folder_url,
+            quiet=False,
+            use_cookies=False,
+            remaining_ok=True
+        )
 
-    # 🔹 Baixa todos os arquivos da pasta da câmera (mas filtrando manualmente)
-    files = gdown.download_folder(
-        url=camera_folder_url,
-        quiet=False,
-        use_cookies=False,
-        remaining_ok=True
-    )
+        if not files:
+            st.sidebar.warning(f"⚠️ Nenhum arquivo encontrado para {camera_name}/{date_str}.")
+            return
 
-    if not files:
-        print("⚠️ Nenhum arquivo encontrado no Drive.")
-        return
+        for file_path in files:
+            file_name = os.path.basename(file_path)
+            if file_name.endswith((".png", ".csv")):
+                dest_path = os.path.join(target_dir, file_name)
+                os.replace(file_path, dest_path)
+            else:
+                os.remove(file_path)
 
-    # 🔹 Filtra apenas os arquivos necessários
-    for file_path in files:
-        file_name = os.path.basename(file_path)
-        if file_name.endswith((".png", ".csv")):
-            dest_path = os.path.join(target_dir, file_name)
-            os.rename(file_path, dest_path)
-            print(f"✅ Mantido: {file_name}")
-        else:
-            os.remove(file_path)
-            print(f"🗑️ Ignorado: {file_name}")
-
-    print(f"✅ Dados prontos para {camera_name}/{date_str} em {target_dir}")
+        st.sidebar.success(f"✅ Dados prontos para {camera_name}/{date_str}")
+    except Exception as e:
+        st.sidebar.error(f"❌ Erro ao baixar dados: {e}")
