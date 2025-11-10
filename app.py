@@ -13,10 +13,14 @@ from components.export_pdf import generate_daily_report
 from streamlit_scroll_to_top import scroll_to_here  # scroll automático
 from components.drive_downloader import ensure_camera_data
 
+# --- Diretório base (local ou remoto) ---
 if os.path.exists(r"G:\Meu Drive\Colab Notebooks\data\detections"):
-    BASE_DIR = r"G:\Meu Drive\Colab Notebooks\data\detections"  # Caminho local
+    BASE_DIR = r"G:\Meu Drive\Colab Notebooks\data\detections"
 else:
-    BASE_DIR = "data/detections"  # Caminho para o ambiente do Streamlit Cloud
+    BASE_DIR = "data/detections"
+
+# Cria pasta caso ainda não exista (importante para Streamlit Cloud)
+os.makedirs(BASE_DIR, exist_ok=True)
 
 # --- Configuração da página ---
 st.set_page_config(page_title="Mapa de Calor - Circulação", layout="wide")
@@ -44,6 +48,44 @@ if "scroll_to_bottom" not in st.session_state:
 
 def scroll_bottom():
     st.session_state.scroll_to_bottom = True
+
+# --- FILTROS ---
+st.sidebar.header("🎛️ Filtros")
+
+# 🔹 Garante que há dados de pelo menos uma câmera no diretório
+if not os.listdir(BASE_DIR):
+    st.sidebar.info("⏳ Carregando dados iniciais do Google Drive...")
+    # baixa ao menos os dados da entrada para popular a estrutura
+    ensure_camera_data("camera11", "2025-10-07")  # exemplo inicial
+    st.sidebar.success("✅ Dados iniciais baixados, recarregue a página (Ctrl+R).")
+
+# 🔹 Obtém lista de câmeras disponíveis
+cameras = get_available_cameras()
+
+if not cameras:
+    st.warning("Nenhuma câmera encontrada. Aguarde o carregamento inicial.")
+    st.stop()
+
+# 🔹 Ordena câmeras (Entrada primeiro, camera10 por último)
+if "camera11" in cameras:
+    cameras.remove("camera11")
+    cameras.insert(0, "camera11")
+
+if "camera10" in cameras:
+    cameras.remove("camera10")
+    cameras.append("camera10")
+
+# 🔹 Mapeia nomes técnicos para nomes amigáveis
+camera_labels = [format_camera_name(cam) for cam in cameras]
+
+# 🔹 Cria o selectbox mostrando o nome amigável
+selected_label = st.sidebar.selectbox(
+    "📷 Selecionar Câmera",
+    camera_labels,
+    key="camera_selectbox"
+)
+selected_camera = cameras[camera_labels.index(selected_label)]
+
 
 # --- FILTROS ---
 st.sidebar.header("🎛️ Filtros")
